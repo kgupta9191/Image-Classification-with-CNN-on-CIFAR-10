@@ -9,6 +9,7 @@ from torchvision import models, transforms
 
 
 def get_default_device():
+    """Return CUDA device when available, otherwise CPU."""
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -20,6 +21,7 @@ image_size = 224
 
 
 def get_transforms(target_image_size=image_size):
+    """Build and return (train_transform, test_transform) for CIFAR-10 inputs."""
     train_transform = transforms.Compose([
         transforms.Resize((256, 256)),
         transforms.RandomResizedCrop(target_image_size, scale=(0.8, 1.0)),
@@ -41,6 +43,7 @@ def get_transforms(target_image_size=image_size):
 
 
 def load_datasets(data_root="./data", download=False, target_image_size=image_size):
+    """Load CIFAR-10 train/test datasets and return them with the eval transform."""
     train_transform, test_transform = get_transforms(target_image_size)
     train_dataset = torchvision.datasets.CIFAR10(
         root=data_root,
@@ -58,6 +61,7 @@ def load_datasets(data_root="./data", download=False, target_image_size=image_si
 
 
 def create_dataloaders(train_dataset, test_dataset, test_transform, loader_batch_size=32):
+    """Split train set, apply validation transform, and return train/val/test dataloaders."""
     train_size = int(0.8 * len(train_dataset))
     val_size = len(train_dataset) - train_size
     train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
@@ -71,6 +75,7 @@ def create_dataloaders(train_dataset, test_dataset, test_transform, loader_batch
 
 
 def build_model(num_classes, device):
+    """Create a ResNet18 classifier with a custom output layer and move to device."""
     model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     return model.to(device)
@@ -128,6 +133,7 @@ def evaluate(model, loader, criterion, device):
     return epoch_loss, epoch_acc
 
 def run_training():
+    """Run the full training loop and return (best_model, best_validation_accuracy)."""
     device = get_default_device()
     print("Using device:", device)
 
