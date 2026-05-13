@@ -177,7 +177,7 @@ You can also use:
 bash script.sh
 ```
 
-It checks Python 3.10 availability, verifies/install modules from `requirements.txt`, and runs `src/transfer_cnn.py`.
+It checks Python 3.10 availability, verifies/installs modules from `requirements.txt`, and runs `src/transfer_cnn.py`.
 
 ---
 
