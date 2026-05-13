@@ -2,4 +2,5 @@ optax
 pandas 
 numpy
 torch
+torchvision
 pytest

@@ -2,6 +2,7 @@ import importlib
 import re
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -23,13 +24,10 @@ def _tiny_loader(num_samples=16, batch_size=4):
     return DataLoader(TensorDataset(x, y), batch_size=batch_size, shuffle=False)
 
 
-def test_ci_uses_pytest_command():
+def test_ci_and_pytest_config_allow_test_discovery():
     workflow = (ROOT / ".github" / "workflows" / "python-ci.yml").read_text(encoding="utf-8")
-    assert "pytest -v" in workflow
-
-
-def test_pytest_testpaths_points_to_tests_dir():
     cfg = (ROOT / "pytest.ini").read_text(encoding="utf-8")
+    assert "pytest -v" in workflow
     assert "testpaths = tests" in cfg
 
 
@@ -101,6 +99,7 @@ def test_scheduler_step_changes_learning_rate():
     optimizer = optim.SGD(model.parameters(), lr=0.1)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
     lr_before = optimizer.param_groups[0]["lr"]
+    optimizer.step()
     scheduler.step()
     lr_after = optimizer.param_groups[0]["lr"]
     assert lr_after < lr_before
@@ -115,7 +114,7 @@ def test_device_handling_cpu_gpu_fallback_works():
 
 def test_train_and_test_transforms_output_shape_and_finite_values():
     train_transform, test_transform = MODULE.get_transforms(target_image_size=224)
-    image = Image.fromarray((torch.rand(32, 32, 3).numpy() * 255).astype("uint8"))
+    image = Image.fromarray(np.random.randint(0, 256, size=(32, 32, 3), dtype=np.uint8))
 
     train_tensor = train_transform(image)
     test_tensor = test_transform(image)
