@@ -32,6 +32,12 @@ def test_ci_and_pytest_config_allow_test_discovery():
 
 
 def test_required_dependencies_importable():
+    module_name_overrides = {
+        "pillow": "PIL",
+        "opencv-python": "cv2",
+        "scikit-learn": "sklearn",
+        "pyyaml": "yaml",
+    }
     requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8").splitlines()
     deps = []
     for line in requirements:
@@ -40,7 +46,8 @@ def test_required_dependencies_importable():
             continue
         deps.append(re.split(r"[<>=!]", stripped)[0].strip())
     for dep in deps:
-        importlib.import_module(dep)
+        import_name = module_name_overrides.get(dep.lower(), dep.replace("-", "_"))
+        importlib.import_module(import_name)
 
 
 def test_transfer_module_import_has_no_training_side_effect_globals():
@@ -134,12 +141,13 @@ def test_dataloader_batch_shape_and_label_format_are_correct():
     train_dataset = TensorDataset(x_train, y_train)
     test_dataset = TensorDataset(x_test, y_test)
 
-    train_loader, val_loader, test_loader, _ = MODULE.create_dataloaders(
+    train_loader, val_loader, test_loader, split_train_dataset = MODULE.create_dataloaders(
         train_dataset=train_dataset,
         test_dataset=test_dataset,
         test_transform=None,
         loader_batch_size=4,
     )
+    assert len(split_train_dataset) > 0
 
     for loader in (train_loader, val_loader, test_loader):
         images, labels = next(iter(loader))
